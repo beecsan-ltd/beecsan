@@ -19,7 +19,7 @@ import {
 
 // ✅ Firebase imports cusub oo loogu talagalay xogta seller-ka
 import { doc, getDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase' // Hubi in magaca 'db' uu sax yahay
+import { db } from '@/lib/firebase'
 
 import {
   onProductsUpdate,
