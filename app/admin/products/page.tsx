@@ -16,6 +16,11 @@ import { Badge } from '@/components/ui/badge'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog"
+
+// ✅ Firebase imports cusub oo loogu talagalay xogta seller-ka
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase' // Hubi in magaca 'db' uu sax yahay
+
 import {
   onProductsUpdate,
   deleteProduct,
@@ -32,6 +37,7 @@ interface Product {
   image_urls?: string[]
   visibility: 'visible' | 'hidden'
   status: 'pending' | 'approved' | 'rejected'
+  seller_id?: string // ✅ Waa muhiim inaan haysano id-ga seller-ka
   seller_name?: string
   seller_email?: string
   seller_phone?: string
@@ -47,6 +53,10 @@ export default function ProductsPage() {
 
   // Modals state
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  
+  // ✅ 1. HALKAN KU DAR SELLER DATA STATE
+  const [sellerData, setSellerData] = useState<any>(null)
+
   const [rejectingId, setRejectingId] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState('')
 
@@ -61,6 +71,28 @@ export default function ProductsPage() {
     })
     return () => unsubscribe()
   }, [])
+
+  // ✅ 2. HALKAN KU DAR EFFECT-KA SOO JIIDAYA XOGTA SELLER-KA
+  useEffect(() => {
+    const fetchSellerInfo = async () => {
+      if (selectedProduct?.seller_id) {
+        try {
+          // Waxaan ka raadinaynaa collection-ka 'users'
+          const userDoc = await getDoc(doc(db, 'users', selectedProduct.seller_id));
+          if (userDoc.exists()) {
+            setSellerData(userDoc.data());
+          } else {
+            setSellerData(null);
+          }
+        } catch (error) {
+          console.error("Error fetching seller details:", error);
+          setSellerData(null);
+        }
+      }
+    };
+
+    fetchSellerInfo();
+  }, [selectedProduct]);
 
   // --- ACTIONS ---
   const handleStatusChange = async (id: string, status: 'approved' | 'rejected', reason: string = '') => {
@@ -205,7 +237,7 @@ export default function ProductsPage() {
                 <TableCell className="text-right px-8">
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" size="sm" onClick={() => setSelectedProduct(product)} className="font-black border-2 hover:bg-slate-900 hover:text-white transition-all">
-                       Inspect
+                        Inspect
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)} className="text-slate-300 hover:text-red-600">
                       <Trash2 size={18} />
@@ -219,7 +251,12 @@ export default function ProductsPage() {
       </Card>
 
       {/* --- INSPECT MODAL (ENLARGED) --- */}
-      <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
+      <Dialog open={!!selectedProduct} onOpenChange={(open) => {
+          if(!open) {
+            setSelectedProduct(null);
+            setSellerData(null); // ✅ Nadiifi xogta marka modal-ka la xiro
+          }
+      }}>
         <DialogContent className="max-w-[95vw] md:max-w-7xl w-full h-[92vh] p-0 overflow-hidden border-none rounded-[32px] shadow-2xl flex flex-col">
           {selectedProduct && (
             <div className="flex flex-col md:flex-row h-full">
@@ -258,25 +295,38 @@ export default function ProductsPage() {
                     </DialogTitle>
                   </DialogHeader>
 
-                  {/* Seller Card */}
+                  {/* ✅ SELLER CARD - LA SAXAY SI AY XOGTU USOO MUUQATO */}
                   <div className="space-y-4">
                     <h4 className="text-[11px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
                       <User size={14} className="text-primary" /> Verified Seller
                     </h4>
                     <div className="bg-slate-50 border border-slate-100 p-6 rounded-[24px] space-y-4 shadow-sm">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-black text-xl">
-                          {selectedProduct.seller_name?.charAt(0) || 'S'}
+                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-black text-xl transition-all shadow-lg shadow-primary/20">
+                          {sellerData?.fullName?.charAt(0) || 'S'}
                         </div>
                         <div>
-                          <div className="font-black text-slate-900 text-lg leading-none">{selectedProduct.seller_name || 'N/A'}</div>
-                          <div className="text-slate-400 text-sm font-medium mt-1">Professional Merchant</div>
+                          <div className="font-black text-slate-900 text-lg leading-none">
+                            {sellerData?.fullName || 'Loading...'}
+                          </div>
+                          <div className="text-slate-400 text-sm font-medium mt-1">
+                            {sellerData?.role === 'user' ? 'Professional Merchant' : 'Verified Seller'}
+                          </div>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 gap-3 pt-4 border-t border-slate-200/50">
-                        <div className="flex items-center gap-3 text-sm font-bold text-slate-600"><Mail size={16} className="text-slate-300"/> {selectedProduct.seller_email || 'No Email'}</div>
-                        <div className="flex items-center gap-3 text-sm font-bold text-slate-600"><Phone size={16} className="text-slate-300"/> {selectedProduct.seller_phone || 'No Phone'}</div>
-                        <div className="flex items-center gap-3 text-sm font-bold text-slate-600"><MapPin size={16} className="text-slate-300"/> {selectedProduct.city || 'Location Not Set'}</div>
+                        <div className="flex items-center gap-3 text-sm font-bold text-slate-600">
+                          <Mail size={16} className="text-slate-300"/> 
+                          {sellerData?.email || 'No Email'}
+                        </div>
+                        <div className="flex items-center gap-3 text-sm font-bold text-slate-600">
+                          <Phone size={16} className="text-slate-300"/> 
+                          {sellerData?.phone || 'No Phone'}
+                        </div>
+                        <div className="flex items-center gap-3 text-sm font-bold text-slate-600">
+                          <MapPin size={16} className="text-slate-300"/> 
+                          {selectedProduct.city || 'Muqdisho'}
+                        </div>
                       </div>
                     </div>
                   </div>
