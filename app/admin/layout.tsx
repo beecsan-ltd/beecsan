@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { LayoutDashboard, Package, Users, BarChart3, Images, LogOut, Menu, X, Loader2 } from 'lucide-react'
+import { LayoutDashboard, Package, Users, BarChart3, Images, LogOut, Menu, X, Loader2, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth-context' // ✅ Isticmaal useAuth halkii localStorage
+import { Analytics } from '@vercel/analytics/next'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -13,6 +14,7 @@ const navItems = [
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/reports', label: 'Reports', icon: BarChart3 },
   { href: '/admin/banners', label: 'Banners', icon: Images },
+  { href: '/admin/sellers', label: 'Sellers', icon: TrendingUp },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

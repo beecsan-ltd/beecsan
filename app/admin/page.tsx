@@ -16,6 +16,7 @@ interface DashboardStats {
   totalReports: number
   totalBanners: number
   revenue: number
+  totalFollowUps: number
 }
 
 export default function AdminDashboard() {
@@ -25,6 +26,7 @@ export default function AdminDashboard() {
     totalReports: 0,
     totalBanners: 0,
     revenue: 0,
+    totalFollowUps: 0,
   })
   const [loading, setLoading] = useState(true)
 
@@ -87,6 +89,13 @@ export default function AdminDashboard() {
       icon: ImageIcon,
       color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
     },
+    {
+      title: 'follow up',
+      value: stats.totalFollowUps,
+      icon: TrendingUp,
+      color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+    },
+    
   ]
 
   return (
@@ -154,6 +163,7 @@ export default function AdminDashboard() {
               { label: 'Manage Users', href: '/admin/users' },
               { label: 'View Reports', href: '/admin/reports' },
               { label: 'Manage Banners', href: '/admin/banners' },
+              { label: 'Product analyze', href: '/admin/sellers' },
             ].map(({ label, href }) => (
               <a
                 key={href}
